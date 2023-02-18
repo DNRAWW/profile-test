@@ -1,6 +1,10 @@
 import { Express } from "express";
+import { Knex } from "knex";
+import { UsersService } from "./services/usersService";
 
-export function initRoutes(app: Express) {
+export function initRoutes(app: Express, dbConnection: Knex) {
+  const usersService = new UsersService(dbConnection);
+
   app.post("/user/register", (req, res) => {
     //
   });
