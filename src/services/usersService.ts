@@ -50,11 +50,11 @@ export class UsersService {
   }
 
   async findAll(page: number) {
-    return await this.dbConnection
+    return (await this.dbConnection
       .select(selectedFields)
       .table("users")
       .orderBy("created_at", "asc")
       .limit(10)
-      .offset((page - 1) * 10);
+      .offset((page - 1) * 10)) as IUser[];
   }
 }

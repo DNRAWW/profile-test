@@ -11,12 +11,10 @@ module.exports = {
       database: process.env.DB_NAME,
     },
     migrations: {
-      extension: "ts",
-      directory: "./dist/migrations",
+      directory: "./migrations",
     },
     seeds: {
-      extension: "ts",
-      directory: "./dist/seeds"
+      directory: "./seeds"
     }
   },
 };

@@ -1,15 +1,23 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, urlencoded } from "express";
 import dotenv from "dotenv";
+import { initRoutes } from "./routes";
+import { dbConnection } from "./db/db-connection";
+import { ZodError } from "zod";
 
 dotenv.config();
 
-const app: Express = express();
-const port = process.env.PORT;
+function main() {
+  const app: Express = express();
+  const port = process.env.PORT;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
-});
+  app.use(urlencoded());
+  app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+  initRoutes(app, dbConnection);
+
+  app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  });
+}
+
+main();

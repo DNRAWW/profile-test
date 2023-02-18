@@ -1,10 +1,5 @@
 import { Knex } from "knex";
 
-export enum ESex {
-  MALE = "M",
-  FEMALE = "F",
-}
-
 interface IUser {
   id: number;
   first_name: string;
@@ -18,11 +13,11 @@ interface IUser {
 
 export type TUser = {
   first_name: string;
-  last_name?: string;
+  last_name?: string | undefined;
   email: string;
   password: string;
-  sex?: ESex;
-  profile_picture_path?: string;
+  sex?: M | F | undefined;
+  profile_picture_path?: string | undefined;
 };
 
 export type TUpdateUser = Partial<
