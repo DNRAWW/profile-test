@@ -2,8 +2,6 @@
 
 Вход в аккаунт: email - dnraww4@gmail.com, password - admin123.
 
-## Инструкция
-
 Запуск приложения - `npm run cleanStart`
 
 Небольшие изменения:
