@@ -69,4 +69,10 @@ export class UsersService {
       .first()
       .column()) as IUser | null;
   }
+
+  async addProfilePicturePath(id: number, path: string) {
+    await this.dbConnection.table("users").where("id", id).update({
+      profile_picture_path: path,
+    });
+  }
 }

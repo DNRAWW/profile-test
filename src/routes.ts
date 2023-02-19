@@ -1,7 +1,10 @@
 import { Express, Request, Response } from "express";
 import { Knex } from "knex";
+import path from "path";
+import { IUser } from "./@types";
 import { authRequired } from "./middleware/authMiddleware";
 import { AuthService } from "./services/authService";
+import { FileStorageService } from "./services/fileStorageService";
 import { UsersService } from "./services/usersService";
 import { idData, pageData } from "./validation/commonValidation";
 import {
@@ -14,6 +17,7 @@ import { promiseWrapper } from "./wrapper";
 export function initRoutes(app: Express, dbConnection: Knex) {
   const usersService = new UsersService(dbConnection);
   const authService = new AuthService(dbConnection, usersService);
+  const fileStorageService = new FileStorageService();
 
   app.post(
     "/user/register",
@@ -100,6 +104,44 @@ export function initRoutes(app: Express, dbConnection: Knex) {
     promiseWrapper(async (req: Request, res: Response) => {
       const userId = Number(req.headers.userId);
       return res.json(await usersService.findById(userId)).send();
+    })
+  );
+
+  app.post(
+    "/profile/upload-picture",
+    authRequired,
+    promiseWrapper(async (req: Request, res: Response) => {
+      if (!req.files || !req.files.avatar) {
+        return res.status(400).send("File is requiered");
+      }
+
+      const avatar = req.files.avatar;
+
+      if (Array.isArray(avatar)) {
+        return res.status(400).send("Only one file can be sent");
+      }
+      const avatarExtenstion = path.extname(avatar.name);
+
+      if (avatarExtenstion !== ".jpg" && avatarExtenstion !== ".png") {
+        return res.status(400).send("Only .jpg and .png allowed");
+      }
+
+      const user = (await usersService.findById(
+        Number(req.headers.userId)
+      )) as IUser;
+
+      if (user.profile_picture_path) {
+        fileStorageService.deleteFolder(user.profile_picture_path);
+      }
+
+      const pathToSavedFile = fileStorageService.saveFile(avatar);
+
+      await usersService.addProfilePicturePath(
+        Number(req.headers.userId),
+        pathToSavedFile
+      );
+
+      return res.send(true);
     })
   );
 }

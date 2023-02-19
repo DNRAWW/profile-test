@@ -21,7 +21,7 @@ export type TUser = {
 };
 
 export type TUpdateUser = Partial<
-  Omit<IUser, "id" | "created_at" | "password" | "profile_picture_path">
+  Omit<IUser, "id" | "created_at" | "password">
 >;
 
 declare module "knex/types/tables" {
