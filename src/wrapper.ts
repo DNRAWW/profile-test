@@ -8,7 +8,7 @@ export function promiseWrapper(fn: Function) {
       if (err instanceof ZodError) {
         return res.status(400).send(fromZodError(err));
       }
-
+      console.error(err);
       return res.status(500).send("Internal server error");
     });
   };

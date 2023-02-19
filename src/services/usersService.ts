@@ -1,5 +1,6 @@
 import { Knex } from "knex";
 import { IUser, TUpdateUser, TUser } from "../@types";
+import bcrypt from "bcrypt";
 
 const selectedFields = [
   "id",
@@ -18,6 +19,9 @@ export class UsersService {
   }
 
   async create(user: TUser) {
+    const hashedPassword = await bcrypt.hash(user.password, 3);
+    user.password = hashedPassword;
+
     await this.dbConnection.table("users").insert(user);
   }
 
@@ -56,5 +60,13 @@ export class UsersService {
       .orderBy("created_at", "asc")
       .limit(10)
       .offset((page - 1) * 10)) as IUser[];
+  }
+
+  async findByEmailWithPassword(email: string) {
+    return (await this.dbConnection
+      .table("users")
+      .where("email", email)
+      .first()
+      .column()) as IUser | null;
   }
 }

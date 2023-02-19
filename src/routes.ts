@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { Knex } from "knex";
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
+import { authRequired } from "./middleware/authMiddleware";
+import { AuthService } from "./services/authService";
 import { UsersService } from "./services/usersService";
 import { idData, pageData } from "./validation/commonValidation";
 import {
@@ -13,6 +13,7 @@ import { promiseWrapper } from "./wrapper";
 
 export function initRoutes(app: Express, dbConnection: Knex) {
   const usersService = new UsersService(dbConnection);
+  const authService = new AuthService(dbConnection, usersService);
 
   app.post(
     "/user/register",
@@ -35,13 +36,24 @@ export function initRoutes(app: Express, dbConnection: Knex) {
     "/user/login",
     promiseWrapper(async (req: Request, res: Response) => {
       const validatedLoginData = loginData.parse(req.body);
+      const user = await authService.validateUser(
+        validatedLoginData.email,
+        validatedLoginData.password
+      );
+
+      if (!user) {
+        return res.status(401).send("Wrong login or password");
+      }
+
+      return res.send(authService.genToken(user.id));
     })
   );
 
   app.put(
-    "/profile/:id",
+    "/profile",
+    authRequired,
     promiseWrapper(async (req: Request, res: Response) => {
-      const id = idData.parse(req.params).id;
+      const id = Number(req.headers.userId);
       const validatedUpdateData = updateData.parse(req.body);
 
       const userWithEmail = validatedUpdateData.email
@@ -66,9 +78,7 @@ export function initRoutes(app: Express, dbConnection: Knex) {
       const user = await usersService.findById(id);
 
       if (user) {
-        res.json(user);
-        res.send();
-        return;
+        return res.json(user).send();
       }
 
       res.status(404).send("User not found");
@@ -81,6 +91,15 @@ export function initRoutes(app: Express, dbConnection: Knex) {
       const page = pageData.parse(req.query).page;
 
       res.json(await usersService.findAll(page)).send();
+    })
+  );
+
+  app.get(
+    "/user/me",
+    authRequired,
+    promiseWrapper(async (req: Request, res: Response) => {
+      const userId = Number(req.headers.userId);
+      return res.json(await usersService.findById(userId)).send();
     })
   );
 }

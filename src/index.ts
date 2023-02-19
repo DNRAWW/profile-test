@@ -2,7 +2,7 @@ import express, { Express, urlencoded } from "express";
 import dotenv from "dotenv";
 import { initRoutes } from "./routes";
 import { dbConnection } from "./db/db-connection";
-import { ZodError } from "zod";
+import { tryAuthenticateUser } from "./middleware/authMiddleware";
 
 dotenv.config();
 
@@ -12,7 +12,7 @@ function main() {
 
   app.use(urlencoded());
   app.use(express.json());
-
+  app.use(tryAuthenticateUser);
   initRoutes(app, dbConnection);
 
   app.listen(port, () => {
